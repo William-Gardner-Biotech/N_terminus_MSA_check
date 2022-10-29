@@ -5,5 +5,7 @@ Using modern genome assembly tools, scientists can annotate genomes in record ti
 My program seeks to solve this problem by using multiple sequence alignment data from hundreds of genomes to identify misidentified gene start sites. 
 
 Orthologous groups and Multiple Sequence Alignments are pulled from:
+<ul>
   https://omabrowser.org/
   http://eggnog5.embl.de/
+</ul>
