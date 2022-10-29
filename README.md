@@ -6,6 +6,7 @@ My program seeks to solve this problem by using multiple sequence alignment data
 
 Orthologous groups and Multiple Sequence Alignments are pulled from:
 <ul>
-  https://omabrowser.org/
+  https://omabrowser.org/</ul>
+<ul>
   http://eggnog5.embl.de/
 </ul>
