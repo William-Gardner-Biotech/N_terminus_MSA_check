@@ -131,13 +131,15 @@ def second_step_vis(gaps, seqs):
 
 # Seqs should be a list variable
 # RE variables . ^ $ * + ? { } [ ] \ | ( )
-
 def regx_firM(seqs):
+    seq_no = 0
     positions = {}
     sorted_positions = {}
     for line in seqs:
+        seq_no+=1
         #print(line)
-        N_ter = re.search("(\-*M)|(\-*[A-Z]*M)", line)
+        N_ter = re.match("(([\-,A-L,N-Z]*M))", line)
+        #print(seq_no,"NTER", N_ter.group(0))
         key = len(N_ter.group())
         if key in positions.keys():
             positions[key] += 1
@@ -145,7 +147,7 @@ def regx_firM(seqs):
             positions[key] = 1
     for key in sorted(positions.keys()):
         sorted_positions[key] = positions[key]
-        #print(key, positions[key])
+        print(key, positions[key])
 
     return sorted_positions
 
