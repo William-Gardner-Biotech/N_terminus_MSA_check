@@ -1,4 +1,4 @@
-# N-termini Multiple Sequence Alignment Outlier Identifier 
+# Multiple Sequence Alignment outlier IDentifier (MSAoutID) 
 
 Using modern genome assembly tools, scientists can annotate genomes in record time. This revolution in genome assembly is not without its own problems however. Weak signals along with incomplete sequencing reads can create a problem of unwanted gene merging. This is an error in identification of genes that includes a lot of noise from another gene by accidental merging. Using conservation of genes protein sequences (BLAST) and alignment tools we can catch these outliers and hopefully remove these imperfections from genomes. 
 
