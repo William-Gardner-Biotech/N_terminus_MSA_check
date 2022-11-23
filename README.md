@@ -29,9 +29,11 @@ Orthologous group Multiple Sequence Alignments are pulled from:
 1. Comprehensive: 
 
 ![](https://i.imgur.com/KocOh5Z.png)
+
 2. Trimmed:
 
 ![](https://i.imgur.com/B3tx2EJ.png)
+
 3. CSV format:
 
 ![](https://i.imgur.com/XYqgWmz.png)
