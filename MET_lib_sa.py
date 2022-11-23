@@ -1,5 +1,6 @@
 import statistics
 import re
+import sys
 
 # Import our Fasta file of MSA
 # Add a ">" character so that the for loop will append final sequence
@@ -7,7 +8,7 @@ import re
 if __name__ == "__main__":
     print("Running in the library")
 
-def txt_to_seq(filename, show):
+def txt_to_seq(filename):
     addition = open(filename, "a")
     addition.write(" ")
     addition.close()
@@ -26,8 +27,6 @@ def txt_to_seq(filename, show):
                 continue
             else:
                 sequences.append(saved_line)
-                if show == True:
-                    print(saved_line)
                 saved_line = ""
                 continue
         else:
@@ -76,24 +75,24 @@ def stat_vis(gaps, seqs):
     Mean_ahead = statistics.mean(gaps.values())
     s_dev = statistics.stdev(gaps.values())
     if s_dev == 0:
-        Z_score = ('St. Dev == 0, crisp alignment at N-ter')
-        return (Z_score)
-    Z_score = (Mean_ahead-(gaps[Outlier_1]))/s_dev
+        Zscore = ('St. Dev == 0, crisp alignment at N-ter')
+        return (Zscore)
+    Zscore = (Mean_ahead-(gaps[Outlier_1]))/s_dev
     print("Average number of gaps", int(Mean_ahead))
     print("Outlier: Sequence", Outlier_1, ", Gaps:", gaps[Outlier_1])
     print("\n------------------\n------St-Dev------\n", s_dev, "\n------------------")
-    print("-----","Z-score-----\n",Z_score, "\n------------------\n")
-    return Z_score
+    print("-----","Z-score-----\n",Zscore, "\n------------------\n")
+    return Zscore
 
 def Z_score(gaps):
     Outlier_1 = min(gaps, key=gaps.get)
     Mean_ahead = statistics.mean(gaps.values())
     s_dev = statistics.stdev(gaps.values())
     if s_dev == 0:
-        Z_score = ('St. Dev == 0, crisp alignment at N-ter')
-        return (Z_score)
-    Z_score = (Mean_ahead - (gaps[Outlier_1])) / s_dev
-    return Z_score
+        Zscore = ('St. Dev == 0, crisp alignment at N-ter')
+        return (Zscore)
+    Zscore = (Mean_ahead - (gaps[Outlier_1])) / s_dev
+    return Zscore
 
 ### IMPORTANT NOTE: The AA's are in computational counting ie 0 = 1, so they don't line up to a visual MSA precisely
 
@@ -184,47 +183,91 @@ def F2C_distance(positions_score, tri):
     return score
 
 # run option modes: {0:debug}. {1:Full stats}, {2:Trimmed stats}, {3: .csv format}
-def summary(seqs, pt, sorted_positions, gaps, Outlier, sys_argv, Z_score, run_option):
-    if run_option == 0:
-        print("Debugging mode:")
-        seq_len = len(seqs[0])
-        print("\nSEQUENCES")
-        for i in seqs:
-            print(i)
-        print("\nN_TERM")
-        for key in sorted_positions.keys():
-            print(key, sorted_positions[key])
-        seq_no = 1
-        print("\nGAPS")
-        for j in gaps:
-            print(seq_no, j)
-            seq_no += 1
-        print("\nTRIANGLES:")
-        tria = build_triangles(sorted_positions, seq_len)
-        for k in tria:
-            print(k)
-        print("\nSTATS")
-        print(stat_vis(gaps, seqs))
-        print("\nZ-score")
-        print(Z_score)
-        print("\nOUTLIER")
-        print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt[1:])
-    elif run_option == 1:
-        print("Alignment", sys_argv)
-        print("\nPositions of First Methionines")
-        for key in sorted_positions.keys():
-            print(key, sorted_positions[key])
-        stat_vis(gaps, seqs)
-        print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt[1:])
-    elif run_option == 2:
-        print("Alignment", sys_argv)
-        print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt[1:])
-    elif run_option == 3:
-        header = "Alignment,Outlier_Seq_No,Z_score,PT_ID"
-        print("Alignment", sys_argv)
-        print(header)
-        Outlier = str(Outlier)
-        Z_score = str(Z_score)
-        body = sys_argv+","+Outlier+","+pt[1:]+","+Z_score
-        print(body)
 
+def process(filename, outname, run_option, Z_choice):
+
+    Z_choice = int(Z_choice)
+
+    run_option = int(run_option)
+
+# Length checker
+
+    seqs = txt_to_seq(filename)
+
+    PTs = ProtIDs(filename)
+
+    seq_len = len(seqs[0])
+
+    sorted_positions = regx_firM(seqs)
+
+    triangle_groups = build_triangles(sorted_positions, seq_len)
+
+    best_M_start = (max(triangle_groups, key=triangle_groups.get)-1)
+
+    #print("\nBEST M", best_M_start,"\n")
+
+    N_ter = gaps(seqs, best_M_start)
+
+    Outlier = min(N_ter, key=N_ter.get)
+
+    Zscore = Z_score(N_ter)
+
+    if type(Zscore) == str:
+        print(Zscore)
+        return
+
+    # Recursively build a list of all the bad alignments
+
+    '''print("ARG0", sys.argv[0])
+    print("ARG1", sys.argv[1])
+    print("ARG2", sys.argv[2])
+    print("ARG3", sys.argv[3])'''
+
+    if Zscore > Z_choice:
+        pt = PTs[Outlier]
+        pt = pt[1:]
+        if run_option == 0:
+            print("Debugging mode:")
+            seq_len = len(seqs[0])
+            print("\nSEQUENCES")
+            for i in seqs:
+                print(i)
+            print("\nN_TERM")
+            for key in sorted_positions.keys():
+                print(key, sorted_positions[key])
+            seq_no = 1
+            print("\nGAPS")
+            for j in N_ter:
+                print(seq_no, j)
+                seq_no += 1
+            print("\nTRIANGLES:")
+            tria = build_triangles(sorted_positions, seq_len)
+            for k in tria:
+                print(k)
+            print("\nSTATS")
+            print(stat_vis(N_ter, seqs))
+            print("\nZ-score")
+            print(Zscore)
+            print("\nOUTLIER")
+            print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+        elif run_option == 1:
+            print("Alignment", outname)
+            print("\nPositions of First Methionines")
+            for key in sorted_positions.keys():
+                print(key, sorted_positions[key])
+            stat_vis(N_ter, seqs)
+            print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+        elif run_option == 2:
+            print("Alignment", outname)
+            print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+        elif run_option == 3:
+            #header = "Alignment,Outlier_Seq_No,Z-score,PT_ID"
+            # print("Alignment", sys_argv)
+            # print(header)
+            Outlier = str(Outlier)
+            Zscore = str(Zscore)
+            body = outname + "," + Outlier + "," + pt + "," + Zscore
+            print(body)
+            return body
+    else:
+        return True
