@@ -20,7 +20,7 @@ Orthologous group Multiple Sequence Alignments are pulled from:
 
        python3 MET_prog_sa.py (MSA direcory)  (Run option)  (Z-score Threshold)
        
-       An example: ~/(Your_Directory)$ python3 MET_prog_sa.py mammalia/40674/ 2 3
+       An example: ~$ python3 MET_prog_sa.py mammalia/40674/ 2 3
        
 5. View the processed results in the newly created processed/ directory.
 
