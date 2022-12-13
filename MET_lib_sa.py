@@ -186,6 +186,8 @@ def F2C_distance(positions_score, tri):
 
 def process(filename, outname, run_option, Z_choice):
 
+    output = ""
+
     Z_choice = int(Z_choice)
 
     run_option = int(run_option)
@@ -213,8 +215,7 @@ def process(filename, outname, run_option, Z_choice):
     Zscore = Z_score(N_ter)
 
     if type(Zscore) == str:
-        print(Zscore)
-        return
+        return Zscore
 
     # Recursively build a list of all the bad alignments
 
@@ -258,8 +259,9 @@ def process(filename, outname, run_option, Z_choice):
             stat_vis(N_ter, seqs)
             print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
         elif run_option == 2:
-            print("Alignment", outname)
-            print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+            output += f"Alignment {outname}\n"
+            output += f"Outlier Seq Number: {Outlier} \nOutlier Protein ID: {pt}"
+            return output
         elif run_option == 3:
             #header = "Alignment,Outlier_Seq_No,Z-score,PT_ID"
             # print("Alignment", sys_argv)
