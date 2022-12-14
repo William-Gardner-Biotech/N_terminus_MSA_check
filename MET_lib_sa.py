@@ -1,6 +1,6 @@
 import statistics
 import re
-import sys
+from Bio import SeqIO
 
 # Import our Fasta file of MSA
 # Add a ">" character so that the for loop will append final sequence
@@ -8,42 +8,22 @@ import sys
 if __name__ == "__main__":
     print("Running in the library")
 
-def txt_to_seq(filename):
-    addition = open(filename, "a")
-    addition.write(" ")
-    addition.close()
-
-    file_name = open(filename, 'r')  # ("Nog_seqs.txt", 'r')
-    # Stats on this file: 102 individual sequences
-    # Proteins of length 1070
-
-    # Clean up the files
+def fasta_parser(filename):
     sequences = []
-    saved_line = ""
-    for line in file_name:
-        line = line.strip('\n')
-        if line[0] == ">" or line [0] == " ":
-            if saved_line == "":
-                continue
-            else:
-                sequences.append(saved_line)
-                saved_line = ""
-                continue
-        else:
-            saved_line = saved_line+line
-    file_name.close()
+    fasta_seqs = SeqIO.parse(filename, "fasta")
+    for fasta in fasta_seqs:
+        sequence = str(fasta.seq)
+        sequences.append(sequence)
+        #print(sequence)
     return sequences
 
 def ProtIDs(filename):
-    Prots = ["index_place_holder"]
-    file_name = open(filename, 'r')
-    for line in file_name:
-        line = line.strip("\n")
-        if ">" in line:
-            Prots.append(line)
-        else:
-            continue
-    return Prots
+    PT_names = ["0"]
+    fasta_names = SeqIO.parse(filename, "fasta")
+    for fasta in fasta_names:
+        name = fasta.id
+        PT_names.append(name)
+    return PT_names
 
 
 # Moving to identify outliers
@@ -67,23 +47,6 @@ def gaps(sequences, M_start):
 
     return gap_dict
 
-def stat_vis(gaps, seqs):
-    print("\n----------------\n---Statistics---\n----------------\n")
-    print("Number of sequences                       :", len(seqs))
-    print("Length of individual sequence             :", len(seqs[0]), "\n")
-    Outlier_1 = min(gaps, key=gaps.get)
-    Mean_ahead = statistics.mean(gaps.values())
-    s_dev = statistics.stdev(gaps.values())
-    if s_dev == 0:
-        Zscore = ('St. Dev == 0, crisp alignment at N-ter')
-        return (Zscore)
-    Zscore = (Mean_ahead-(gaps[Outlier_1]))/s_dev
-    print("Average number of gaps", int(Mean_ahead))
-    print("Outlier: Sequence", Outlier_1, ", Gaps:", gaps[Outlier_1])
-    print("\n------------------\n------St-Dev------\n", s_dev, "\n------------------")
-    print("-----","Z-score-----\n",Zscore, "\n------------------\n")
-    return Zscore
-
 def Z_score(gaps):
     Outlier_1 = min(gaps, key=gaps.get)
     Mean_ahead = statistics.mean(gaps.values())
@@ -98,6 +61,7 @@ def Z_score(gaps):
 
 # Seqs should be a list variable
 # RE variables . ^ $ * + ? { } [ ] \ | ( )
+# Find the first Methionine
 def regx_firM(seqs):
     positions = {}
     sorted_positions = {}
@@ -182,6 +146,34 @@ def F2C_distance(positions_score, tri):
         #score += multiplier*1
     return score
 
+def stat_vis(gaps, seqs):
+    stat_string = ""
+    #print("\n----------------\n---Statistics---\n----------------\n")
+    stat_string+=f"\n------------------\n----Statistics----\n------------------\n"
+    #print("Number of sequences                       :", len(seqs))
+    stat_string+=f"Number of sequences                       : {len(seqs)}\n"
+    #print("Length of individual sequence             :", len(seqs[0]), "\n")
+    stat_string+=f"Length of each sequence                   : {len(seqs[0])}\n"
+    Outlier_1 = min(gaps, key=gaps.get)
+    Mean_ahead = statistics.mean(gaps.values())
+    s_dev = statistics.stdev(gaps.values())
+    if s_dev == 0:
+        #Zscore = ('St. Dev == 0, crisp alignment at N-ter')
+        return True
+    Zscore = (Mean_ahead-(gaps[Outlier_1]))/s_dev
+    #print("Average number of gaps", int(Mean_ahead))
+    stat_string+=f"Average number of gaps                    : {int(Mean_ahead)}\n"
+    #print("Outlier: Sequence", Outlier_1, ", Gaps:", gaps[Outlier_1])
+    stat_string+=f"Outlier Sequence                          : {Outlier_1}\n"
+    stat_string+=f"Gaps                                      : {gaps[Outlier_1]}"
+    #stat_string+=f"{gaps[Outlier_1]}"
+    #print("\n------------------\n------St-Dev------\n", s_dev, "\n------------------")
+    stat_string+=f"\n------------------\n------St-Dev------\n{s_dev} \n------------------"
+    #print("-----","Z-score-----\n",Zscore, "\n------------------\n")
+    stat_string+=f"\n-----Z-score-----\n{Zscore}\n------------------\n"
+    return stat_string
+
+
 # run option modes: {0:debug}. {1:Full stats}, {2:Trimmed stats}, {3: .csv format}
 
 def process(filename, outname, run_option, Z_choice):
@@ -194,7 +186,7 @@ def process(filename, outname, run_option, Z_choice):
 
 # Length checker
 
-    seqs = txt_to_seq(filename)
+    seqs = fasta_parser(filename)
 
     PTs = ProtIDs(filename)
 
@@ -219,11 +211,6 @@ def process(filename, outname, run_option, Z_choice):
 
     # Recursively build a list of all the bad alignments
 
-    '''print("ARG0", sys.argv[0])
-    print("ARG1", sys.argv[1])
-    print("ARG2", sys.argv[2])
-    print("ARG3", sys.argv[3])'''
-
     if Zscore > Z_choice:
         pt = PTs[Outlier]
         pt = pt[1:]
@@ -247,24 +234,25 @@ def process(filename, outname, run_option, Z_choice):
                 print(k)
             print("\nSTATS")
             print(stat_vis(N_ter, seqs))
-            print("\nZ-score")
+            print("\nZ-score\n")
             print(Zscore)
             print("\nOUTLIER")
             print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
         elif run_option == 1:
-            print("Alignment", outname)
-            print("\nPositions of First Methionines")
+            output+= f"Alignment {outname}\n------------------"
+            output+= f"\nPositions of First Methionines [AA]:[Count]"
             for key in sorted_positions.keys():
-                print(key, sorted_positions[key])
-            stat_vis(N_ter, seqs)
-            print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+                output+= f"\n{key}:{int(sorted_positions[key])}"
+            output+=f"{stat_vis(N_ter, seqs)}"
+            output+=f"\nOutlier ID: {pt}"
+            #print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+            return output
         elif run_option == 2:
             output += f"Alignment {outname}\n"
             output += f"Outlier Seq Number: {Outlier} \nOutlier Protein ID: {pt}"
             return output
         elif run_option == 3:
             #header = "Alignment,Outlier_Seq_No,Z-score,PT_ID"
-            # print("Alignment", sys_argv)
             # print(header)
             Outlier = str(Outlier)
             Zscore = str(Zscore)

@@ -58,7 +58,7 @@ for i in os.listdir(sys.argv[1]):
     outname = re.match("[\w]*", i)
     outname = outname.group(0)
     #### we can check len of sequences ####
-    if len(MET_lib_sa.txt_to_seq(filename)) < 10 or \
+    if len(MET_lib_sa.fasta_parser(filename)) < 10 or \
         MET_lib_sa.process(filename, outname, sys.argv[2], sys.argv[3]) == True: continue
 
     # CSV format
@@ -78,12 +78,9 @@ for i in os.listdir(sys.argv[1]):
     else:
         outfile = (processed_path+outname+"_out.txt")
         contents = MET_lib_sa.process(filename, outname, sys.argv[2], sys.argv[3])
-        if contents == True:
-            continue
-        else:
-            output = open(outfile, "w")
-            output.write(contents)
-            output.close()
+        output = open(outfile, "w")
+        output.write(contents)
+        output.close()
         #sys.stdout.close()
 
     # Allows ability to run in terminal and from IDE
