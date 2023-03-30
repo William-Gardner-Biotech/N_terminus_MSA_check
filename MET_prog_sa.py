@@ -3,6 +3,22 @@ import sys
 import os
 import re
 import shutil
+import argparse
+
+### Building argparse
+
+parser = argparse.ArgumentParser(description='Program to find improperly annotated or outlier gene N-terminus regions using homologous groups.')
+
+parser.add_argument('-f', '--filename', required=True, type=str, default=None,
+	metavar='<str>', help='Location of folder containing FASTA (.faa) file(s) you want to process. [Can be gzipped]')
+
+parser.add_argument('-o', '--outfmt', required=False, type=int, default=None,
+	metavar='<str>', help='Output file format. (1 = full detail, 2 = shortened, 3 = .csv [Default = 2])')
+
+parser.add_argument('-z', '--z_choice', required=False, type=int, default=False,
+	metavar='<int>', help='Z_score for determining outlier cutoff. NOTE: Lower z-scores will increase run time. [Default = 3]')
+
+arg = parser.parse_args()
 
 ### First checkpoint ###
 
