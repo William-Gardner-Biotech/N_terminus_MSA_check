@@ -238,6 +238,7 @@ def process(filename, outname, run_option, Z_choice):
             print(Zscore)
             print("\nOUTLIER")
             print("Outlier Seq Number:", Outlier, "\nOutlier Protein ID:", pt)
+            return 'Debug Mode'
         elif run_option == 1:
             output+= f"Alignment {outname}\n------------------"
             output+= f"\nPositions of First Methionines [AA]:[Count]"

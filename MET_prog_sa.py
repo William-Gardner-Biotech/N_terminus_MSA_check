@@ -9,7 +9,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Program to find improperly annotated or outlier gene N-terminus regions using homologous groups.')
 
 parser.add_argument('-f', '--filename', required=True, type=str, default=None,
-	metavar='<str>', help='Location of folder containing FASTA (.faa) file(s) you want to process. [Can be gzipped]')
+	metavar='<str>', help='Location of folder containing FASTA (.faa) file(s) you want to process. [Must be unzipped]')
 
 parser.add_argument('-o', '--outfmt', required=False, type=int, default=None,
 	metavar='<int>', help='Output file format. (1 = full detail, 2 = shortened, 3 = .csv [Default = 2])')
@@ -21,14 +21,16 @@ arg = parser.parse_args()
 
 # Code in my default argument values
 
-filename = arg.filename
+infile = arg.filename
 
-if arg.outfmt:
-    if arg.outfmt not in '0123' and len(arg.outfmt) > 1:
+print("BEFORE", arg.outfmt)
+if arg.outfmt or arg.outfmt == 0:
+    if str(arg.outfmt) not in '0123' or len(str(arg.outfmt)) > 1:
         exit('Invalid Format Option provided, please select [1, 2, 3]')
     else:
         run_option = arg.outfmt
 else:
+    print('WRONG WAY')
     run_option = 2
 
 if arg.z_choice:
@@ -39,14 +41,11 @@ if arg.z_choice:
 else:
     z_choice = 3
 
-# Remove after testing
-# --
-print(arg.filename, arg.outfmt, arg.z_choice)
-#--
-
 ## Could use the built in default argument ad make the z_choice a float to increase precision
 
 ### First checkpoint ###
+
+print('Arguments', arg.outfmt, run_option, arg.z_choice, z_choice)
 
 run_dir = os.getcwd()
 
@@ -79,11 +78,10 @@ if run_option == 3:
 # choosing display option
 # Look into splitting PT_ID into two parts as the first part is with egnog id's i believe
 
-for i in os.listdir(filename):
+for i in os.listdir(infile):
     outname = ""
     # run the program through
-    filename = i
-    filename = filename+i
+    filename = infile+i
     outname = re.match("[\w]*", i)
     outname = outname.group(0)
     #### we can check len of sequences ####
