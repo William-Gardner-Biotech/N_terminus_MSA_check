@@ -131,7 +131,7 @@ def build_triangles(positions_score, seq_len):
     for key in sorted(positions_score.keys()):
         print(key, positions_score[key])'''
 
-# Frame to Center disctance
+# Frame to Center distance
 # This function will take all the frames and then using an equation that takes score*(1/(2^n))
 # and adds all the scores in the fram where n is the distance from the center of the triangle
 def F2C_distance(positions_score, tri):
